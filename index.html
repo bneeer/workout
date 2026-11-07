@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bora Treinar! - Pro Jump</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #090d16; color: #f8fafc; }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(10px); }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen pb-20 flex flex-col items-center">
+        
+        <!-- Notificação Customizada (Toast) -->
+        <transition name="fade">
+            <div v-if="toast.show" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl shadow-2xl border flex items-center gap-3"
+                 :class="activeTheme === 'blue' ? 'bg-blue-900 border-blue-500 text-blue-100' : 'bg-rose-900 border-rose-500 text-rose-100'">
+                <i class="fa-solid fa-circle-check text-lg"></i>
+                <span class="text-sm font-semibold">{{ toast.message }}</span>
+            </div>
+        </transition>
+
+        <!-- TELA 1: HOME (Seleção de Usuário) -->
+        <div v-if="currentPage === 'home'" class="w-full max-w-md p-6 flex flex-col items-center justify-center min-h-screen space-y-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-700 shadow-lg">
+                    <i class="fa-solid fa-dumbbell text-3xl text-slate-300"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight">Bora Treinar!</h1>
+                <p class="text-slate-400 mt-2">Quem vai treinar hoje?</p>
+            </div>
+
+            <div class="w-full space-y-4">
+                <!-- Card Abner -->
+                <button @click="selectUser('abner')" class="w-full relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-5 transition-all hover:border-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] group text-left">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-blue-600/20 flex items-center justify-center shadow-inner border border-blue-500/30 shrink-0 overflow-hidden">
+                        <img src="Abner.jpg" alt="Abner" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors">Abner</h2>
+                        <p class="text-sm text-slate-500">Hipertrofia - Ficha A/B</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ml-auto text-slate-600 group-hover:text-blue-400 transition-colors"></i>
+                </button>
+
+                <!-- Card Franciny -->
+                <button @click="selectUser('franciny')" class="w-full relative overflow-hidden bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center gap-5 transition-all hover:border-rose-500 hover:shadow-[0_0_20px_rgba(225,29,72,0.15)] group text-left">
+                    <div class="absolute inset-0 bg-gradient-to-r from-rose-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-rose-600/20 flex items-center justify-center shadow-inner border border-rose-500/30 shrink-0 overflow-hidden">
+                        <img src="Franciny.jpg" alt="Franciny" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-100 group-hover:text-rose-400 transition-colors">Franciny</h2>
+                        <p class="text-sm text-slate-500">Condicionamento - Ficha A/B</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ml-auto text-slate-600 group-hover:text-rose-400 transition-colors"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA 2: PERFIL (Seleção de Treino) -->
+        <div v-if="currentPage === 'profile'" class="w-full max-w-md flex flex-col min-h-screen">
+            <!-- Header Dinâmico -->
+            <header class="p-4 border-b flex items-center gap-4 shadow-lg backdrop-blur-md sticky top-0 z-10" :class="headerClasses">
+                <button @click="goHome" class="w-10 h-10 rounded-full flex items-center justify-center bg-black/20 hover:bg-black/40 transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">{{ currentUserData.name }}</h1>
+                    <p class="text-xs opacity-80">Selecione o treino de hoje</p>
+                </div>
+            </header>
+
+            <div class="p-6 flex-1 flex flex-col justify-center space-y-5">
+                <button @click="startWorkout('A')" class="w-full p-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-transform active:scale-95" :class="buttonPrimaryClasses">
+                    <i class="fa-solid fa-bolt text-4xl mb-2"></i>
+                    <span class="text-2xl font-black">TREINO A</span>
+                </button>
+                <button @click="startWorkout('B')" class="w-full p-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-transform active:scale-95" :class="buttonSecondaryClasses">
+                    <i class="fa-solid fa-fire text-4xl mb-2"></i>
+                    <span class="text-2xl font-black">TREINO B</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA 3: TREINO ATIVO -->
+        <div v-if="currentPage === 'workout'" class="w-full max-w-md flex flex-col min-h-screen">
+            <!-- Header do Treino -->
+            <header class="p-4 border-b flex items-center justify-between shadow-lg backdrop-blur-md sticky top-0 z-20" :class="headerClasses">
+                <div class="flex items-center gap-3">
+                    <button @click="currentPage = 'profile'" class="w-10 h-10 rounded-full flex items-center justify-center bg-black/20 hover:bg-black/40 transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">Treino {{ currentWorkoutId }}</h1>
+                        <p class="text-xs opacity-80">{{ currentUserData.name }}</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Ações Rápidas -->
+            <div class="p-4 sticky top-[73px] z-10 bg-[#090d16]/95 backdrop-blur border-b border-slate-800 flex justify-end">
+                <button @click="exportWorkout" class="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg" :class="exportBtnClasses">
+                    <i class="fa-solid fa-share-nodes"></i> Exportar Resumo
+                </button>
+            </div>
+
+            <!-- Lista de Exercícios -->
+            <div class="p-4 space-y-4 pb-12">
+                <div v-for="(ex, index) in activeWorkoutData" :key="index" class="bg-slate-900 border rounded-2xl p-4 shadow-md transition-colors" :class="cardClasses">
+                    
+                    <div class="flex justify-between items-start mb-3 gap-2">
+                        <div>
+                            <!-- Tag Músculo -->
+                            <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2" :class="tagClasses">
+                                {{ ex.muscle }}
+                            </span>
+                            <h3 class="font-bold text-slate-100 leading-tight">{{ index + 1 }}. {{ ex.name }}</h3>
+                            <p class="text-sm text-slate-400 mt-1">
+                                <i class="fa-solid fa-layer-group text-xs mr-1 opacity-70"></i> {{ ex.series }} séries de {{ ex.reps }}
+                            </p>
+                        </div>
+
+                        <!-- Botão Timer -->
+                        <button @click="toggleTimer(ex)" class="shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border shadow-sm" :class="timerBtnClasses(ex)">
+                            <i class="fa-solid fa-stopwatch text-xl" :class="{'animate-pulse': ex.isRunning}"></i>
+                            <span class="text-xs font-bold">{{ ex.isRunning ? ex.timeLeft + 's' : '60s' }}</span>
+                        </button>
+                    </div>
+
+                    <!-- Input Carga e Checkboxes -->
+                    <div class="mt-4 pt-4 border-t border-slate-800">
+                        <label class="block text-xs font-semibold text-slate-400 mb-2 ml-1">Séries Concluídas:</label>
+                        <div class="flex gap-2 mb-4 flex-wrap">
+                            <label v-for="s in parseInt(ex.series)" :key="s" class="relative flex items-center justify-center cursor-pointer">
+                                <input type="checkbox" v-model="ex.completedSeries[s - 1]" class="peer sr-only">
+                                <div class="w-10 h-10 rounded-xl border-2 border-slate-700 bg-slate-900 flex items-center justify-center peer-checked:bg-green-600 peer-checked:border-green-500 transition-all text-transparent peer-checked:text-white hover:border-slate-500 shadow-sm">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                            </label>
+                        </div>
+
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 ml-1">Carga Registrada:</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-weight-hanging text-slate-500 text-sm"></i>
+                            </div>
+                            <input v-model="ex.carga" type="text" placeholder="Ex: 20kg, 5 placas..." class="block w-full pl-9 pr-3 py-3 bg-slate-950 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:border-transparent transition-all" :class="inputRingClasses">
+                        </div>
+                    </div>
+
+                    <!-- Botão e Seção de Detalhes -->
+                    <div class="mt-4">
+                        <button @click="ex.showDetails = !ex.showDetails" class="w-full text-center py-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 transition-colors bg-slate-800/40 rounded-xl border border-slate-800">
+                            <i class="fa-solid fa-chevron-down mr-1 transition-transform inline-block" :class="{'rotate-180': ex.showDetails}"></i>
+                            {{ ex.showDetails ? 'Ocultar Detalhes' : 'Ver Execução e Foco Muscular' }}
+                        </button>
+                        
+                        <!-- Transição suave para expandir os detalhes -->
+                        <div v-if="ex.showDetails" class="mt-3 p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-300 space-y-3">
+                            <div>
+                                <span class="font-bold text-slate-200 block mb-1">
+                                    <i class="fa-solid fa-crosshairs opacity-70 mr-1" :class="activeTheme === 'blue' ? 'text-blue-400' : 'text-rose-400'"></i> Foco Muscular:
+                                </span>
+                                <span class="leading-relaxed">{{ ex.musclesDetail }}</span>
+                            </div>
+                            <div>
+                                <span class="font-bold text-slate-200 block mb-1">
+                                    <i class="fa-solid fa-person-running opacity-70 mr-1" :class="activeTheme === 'blue' ? 'text-blue-400' : 'text-rose-400'"></i> Execução:
+                                </span>
+                                <span class="leading-relaxed">{{ ex.description }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onUnmounted } = Vue;
+
+        const app = createApp({
+            setup() {
+                // Estado Global
+                const currentPage = ref('home');
+                const activeUserId = ref(null);
+                const currentWorkoutId = ref(null);
+                const toast = reactive({ show: false, message: '' });
+
+                // Função utilitária para criar o objeto base do exercício
+                const createEx = (name, series, reps, muscle, musclesDetail, description) => ({
+                    name, series, reps, muscle, musclesDetail, description,
+                    carga: '', timeLeft: 60, isRunning: false, intervalId: null,
+                    completedSeries: Array.from({ length: parseInt(series) }, () => false),
+                    showDetails: false
+                });
+
+                // Dados Reativos e Estruturados
+                const db = reactive({
+                    abner: {
+                        id: 'abner', name: 'Abner', theme: 'blue',
+                        treinos: {
+                            A: [
+                                createEx('PULL DOWN', '4', '10-12', 'Costas', 'Latíssimo do dorso e tríceps (cabeça longa).', 'De pé, puxe a barra ou corda de cima para baixo mantendo os braços quase estendidos e o peito estufado.'),
+                                createEx('PUX TRIÂNGULO', '4', '10-12', 'Costas', 'Latíssimo do dorso, bíceps e braquial.', 'Puxada vertical no pulley utilizando o puxador triângulo. Puxe em direção ao peito, não ao estômago.'),
+                                createEx('REMADA ART NEUTRA', '4', '10-12', 'Costas', 'Dorsais, romboides e bíceps.', 'Na máquina articulada, puxe o peso horizontalmente fazendo os cotovelos passarem rentes ao tronco.'),
+                                createEx('REMADA CAVALO APARELHO', '4', '10-12', 'Costas', 'Dorsais, miolo das costas e trapézio inferior.', 'Apoie o peito no aparelho, segure os apoios e puxe o peso contraindo bem as escápulas juntas.'),
+                                createEx('TRÍCEPS CORDA CROSS', '4', '10-12', 'Tríceps', 'Tríceps braquial.', 'Mantenha os cotovelos colados na costela e estenda os braços, separando a corda no final do movimento para contração máxima.'),
+                                createEx('TRÍCEPS BANCO', '4', '12-15', 'Tríceps', 'Tríceps e deltoide anterior.', 'Apoie as mãos no banco atrás de você, desça o corpo flexionando os cotovelos a 90º e empurre de volta.'),
+                                createEx('ELEV LAT FRONTAL', '4', '12-15', 'Ombros', 'Deltoide lateral e anterior.', 'Realize a elevação dos halteres lateralmente e, no movimento seguinte (ou conjugado), à frente do corpo.'),
+                                createEx('ABD AMPLITUDE MAX', '4', '20', 'Abdômen', 'Reto abdominal.', 'Flexão completa do tronco. Tente alongar ao máximo no fim da descida e contrair forte na subida.')
+                            ],
+                            B: [
+                                createEx('CADEIRA FLEXORA', '4', '10-12', 'Posterior', 'Isquiotibiais (Posterior de coxa).', 'Sentado na máquina, dobre os joelhos empurrando a almofada para baixo contra a resistência.'),
+                                createEx('MESA FLEXORA', '4', '10-12', 'Posterior', 'Isquiotibiais e panturrilhas.', 'Deitado de bruços na máquina, traga o peso em direção aos glúteos dobrando os joelhos.'),
+                                createEx('AGACHA HALTER', '4', '10-12', 'Quad/Glúteo', 'Quadríceps e glúteos.', 'Segurando os halteres ao lado do corpo, flexione os joelhos e o quadril como se fosse sentar em uma cadeira invisível.'),
+                                createEx('AFUNDO', '4', '10-12', 'Quadríceps', 'Quadríceps e glúteos.', 'Dê uma passada com um pé à frente e desça flexionando ambos os joelhos a 90 graus (sem tocar o chão).'),
+                                createEx('LEG PRESS HORIZONTAL', '4', '10-12', 'Quadríceps', 'Quadríceps e glúteos.', 'Empurre a plataforma na máquina sentada, tomando cuidado para não estender (travar) completamente os joelhos no topo.'),
+                                createEx('ELEV PÉLVICA', '4', '15-20', 'Glúteos', 'Glúteo máximo e médio.', 'Com as costas ou ombros apoiados e o peso no quadril, empurre o chão com os calcanhares para levantar a pélvis.'),
+                                createEx('CADEIRA ADUTORA', '4', '12-15', 'Adutores', 'Músculos adutores (parte interna da coxa).', 'Sentado, feche as pernas empurrando as almofadas da máquina uma em direção à outra.'),
+                                createEx('PANTUR VERTICAL', '4', '15-20', 'Panturrilha', 'Gastrocnêmio e sóleo.', 'Na máquina, flexione e estenda os tornozelos. Desça até alongar bem e suba espremendo as panturrilhas.'),
+                                createEx('ABD OBLÍQUO', '4', '15', 'Abdômen', 'Oblíquos interno e externo.', 'Flexão lateral do tronco focada na musculatura lateral do abdômen, sem curvar o pescoço.')
+                            ]
+                        }
+                    },
+                    franciny: {
+                        id: 'franciny', name: 'Franciny', theme: 'rose',
+                        treinos: {
+                            A: [
+                                createEx('HACK', '4', '10-12', 'Quadríceps', 'Quadríceps e glúteos.', 'Agachamento guiado na máquina. Mantenha os pés posicionados, costas grudadas no encosto, e desça quebrando os 90º se possível.'),
+                                createEx('LEG PRESS INCLINADO', '4', '10-12', 'Quadríceps', 'Quadríceps e glúteos.', 'Empurre a plataforma inclinada a 45 graus. Não deixe seus joelhos cederem para dentro na descida.'),
+                                createEx('CADEIRA EXTENSORA', '4', '10-12', 'Quadríceps', 'Músculos do Quadríceps (Vasto lateral, medial, intermédio e reto femoral).', 'Extensão completa de joelhos na cadeira. Segure um segundo no topo da contração e desça controlando.'),
+                                createEx('CADEIRA ABDUTOR', '4', '10-12', 'Glúteos', 'Glúteo médio e mínimo.', 'Sentada na máquina, afaste os joelhos contra a resistência lateral. Segure um pouco na abertura máxima.'),
+                                createEx('CADEIRA ADUTORA', '3', '10', 'Adutores', 'Músculos adutores (parte interna da coxa).', 'Sentada, feche as pernas empurrando as almofadas, focando no esforço da parte interna das pernas.'),
+                                createEx('MESA FLEXORA', '4', '10', 'Posterior', 'Isquiotibiais.', 'Deitada de bruços, mantenha o quadril firme no banco e puxe o rolo na direção dos glúteos.'),
+                                createEx('PANTUR VERTICAL', '3', '10', 'Panturrilha', 'Gastrocnêmio.', 'Fique nas pontas dos pés empurrando a resistência da máquina, subindo o máximo e descendo para alongar.'),
+                                createEx('ABD SUPRA PERNA 90º', '3', '15', 'Abdômen', 'Reto abdominal (com foco na parte superior).', 'Deitada de barriga para cima, pernas travadas no ar flexionadas a 90º, faça o movimento de tirar as escápulas do chão.')
+                            ],
+                            B: [
+                                createEx('LEG PRESS INCLINADO', '3', '12', 'Quadríceps', 'Quadríceps e glúteos.', 'Empurre a plataforma a 45 graus com controle. Amplitude controlada sem travar o joelho no topo.'),
+                                createEx('SUP VERT MÁQUINA', '3', '12', 'Peito', 'Peitoral maior, tríceps e deltoide anterior.', 'Na máquina, empurre o peso para frente. Mantenha os ombros firmes contra o encosto.'),
+                                createEx('REMADA ART NEUTRA', '3', '12', 'Costas', 'Dorsais, romboides e bíceps.', 'Puxada horizontal na máquina articulada, feche as escápulas atrás no fim da puxada.'),
+                                createEx('MESA FLEXORA', '3', '12', 'Posterior', 'Isquiotibiais.', 'Deitada de bruços, flexão de joelho isolando a parte posterior da perna.'),
+                                createEx('SUP ARTICULADO', '3', '10', 'Peito', 'Peitoral superior (feixe clavicular) e tríceps.', 'Na máquina inclinada, empurre o peso focando na porção superior e clavicular do peitoral.'),
+                                createEx('CRUCIFIXO INV PECK DECK NEUTRO', '3', '12', 'Post. de Ombro', 'Deltoide posterior e romboides.', 'Sentada de frente para a máquina, com pegada neutra, abra os braços espremendo os músculos posteriores dos ombros.'),
+                                createEx('CADEIRA FLEXORA', '3', '12', 'Posterior', 'Isquiotibiais.', 'Sentada, dobre os joelhos empurrando a almofada em direção ao chão/banco.'),
+                                createEx('TRÍCEPS TESTA HALTER', '3', '12', 'Tríceps', 'Tríceps braquial.', 'Deitada num banco, segure os halteres. Dobre apenas o cotovelo descendo os halteres até o lado da testa e volte.'),
+                                createEx('CADEIRA ABDUTOR', '3', '10', 'Glúteos', 'Glúteo médio/mínimo.', 'Abra as pernas contra a resistência, estimulando a porção lateral do glúteo.'),
+                                createEx('REMADA ALTA HALTER', '3', '12', 'Ombros/Trapézio', 'Deltoide lateral e trapézio superior.', 'Em pé, puxe os halteres rentes ao corpo até a linha inferior do queixo, mantendo os cotovelos mais altos que as mãos.'),
+                                createEx('ROSCA DIR BARRA RETA CROSS', '3', '10', 'Bíceps', 'Bíceps braquial.', 'Em pé, puxando a barra do cabo baixo, flexione os cotovelos mantendo-os travados ao lado do tronco.'),
+                                createEx('EXT LOMBAR', '3', '15', 'Lombar', 'Eretores da espinha e glúteos.', 'No banco romano, desça o tronco e levante até alinhar novamente o corpo, focando na musculatura da base das costas.'),
+                                createEx('ABD INFRA PARALELAS', '5', '15', 'Abdômen', 'Reto abdominal (porção inferior) e flexores do quadril.', 'Apoiando cotovelos e costas na máquina de paralelas, erga os joelhos o mais perto do peito possível.')
+                            ]
+                        }
+                    }
+                });
+
+                // Computed Properties baseadas no usuário ativo
+                const currentUserData = computed(() => activeUserId.value ? db[activeUserId.value] : null);
+                const activeTheme = computed(() => currentUserData.value?.theme || 'blue');
+                const activeWorkoutData = computed(() => {
+                    if (!currentUserData.value || !currentWorkoutId.value) return [];
+                    return currentUserData.value.treinos[currentWorkoutId.value];
+                });
+
+                // Classes Tailwind Dinâmicas (Sistema de Temas)
+                const headerClasses = computed(() => activeTheme.value === 'blue' ? 'bg-blue-600/90 border-blue-500/50 text-white' : 'bg-rose-800/90 border-rose-600/50 text-white');
+                const buttonPrimaryClasses = computed(() => activeTheme.value === 'blue' ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:bg-blue-500' : 'bg-rose-700 border-rose-600 text-white shadow-[0_0_20px_rgba(190,18,60,0.3)] hover:bg-rose-600');
+                const buttonSecondaryClasses = computed(() => activeTheme.value === 'blue' ? 'bg-slate-900 border-blue-900 text-blue-500 hover:border-blue-700' : 'bg-slate-900 border-rose-900 text-rose-500 hover:border-rose-700');
+                const cardClasses = computed(() => activeTheme.value === 'blue' ? 'border-slate-800 hover:border-blue-500/30' : 'border-slate-800 hover:border-rose-500/30');
+                const tagClasses = computed(() => activeTheme.value === 'blue' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20');
+                const inputRingClasses = computed(() => activeTheme.value === 'blue' ? 'focus:ring-blue-500' : 'focus:ring-rose-500');
+                const exportBtnClasses = computed(() => activeTheme.value === 'blue' ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20' : 'bg-rose-700 hover:bg-rose-600 text-white shadow-rose-700/20');
+
+                // Timer Classes
+                const timerBtnClasses = (ex) => {
+                    if (ex.isRunning) {
+                        return activeTheme.value === 'blue' 
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+                            : 'bg-rose-600 border-rose-500 text-white shadow-[0_0_15px_rgba(225,29,72,0.5)]';
+                    }
+                    return activeTheme.value === 'blue'
+                        ? 'bg-slate-800 border-slate-700 text-blue-400 hover:bg-slate-700'
+                        : 'bg-slate-800 border-slate-700 text-rose-400 hover:bg-slate-700';
+                };
+
+                // Funções de Navegação e Interação
+                const selectUser = (userId) => { activeUserId.value = userId; currentPage.value = 'profile'; };
+                const goHome = () => { activeUserId.value = null; currentWorkoutId.value = null; currentPage.value = 'home'; };
+                const startWorkout = (treinoId) => { currentWorkoutId.value = treinoId; currentPage.value = 'workout'; };
+
+                // Toast Global
+                const showToast = (msg) => {
+                    toast.message = msg;
+                    toast.show = true;
+                    setTimeout(() => { toast.show = false; }, 3000);
+                };
+
+                // Lógica do Timer Individual
+                const toggleTimer = (ex) => {
+                    if (ex.isRunning) {
+                        clearInterval(ex.intervalId);
+                        ex.isRunning = false;
+                        ex.timeLeft = 60;
+                    } else {
+                        ex.isRunning = true;
+                        ex.timeLeft = 60;
+                        ex.intervalId = setInterval(() => {
+                            ex.timeLeft--;
+                            if (ex.timeLeft <= 0) {
+                                clearInterval(ex.intervalId);
+                                ex.isRunning = false;
+                                ex.timeLeft = 60;
+                                showToast('Tempo esgotado! Próxima série.');
+                            }
+                        }, 1000);
+                    }
+                };
+
+                // Lógica de Exportação
+                const exportWorkout = async () => {
+                    const userName = currentUserData.value.name;
+                    const workoutLetter = currentWorkoutId.value;
+                    const dateStr = new Date().toLocaleDateString('pt-BR');
+                    
+                    let text = `🏋️ Treino ${workoutLetter} - ${userName}\n📅 Data: ${dateStr}\n\n`;
+                    
+                    activeWorkoutData.value.forEach((ex, idx) => {
+                        const cargaDisplay = ex.carga.trim() ? ex.carga : 'Não registrada';
+                        text += `${idx + 1}. ${ex.name} - Carga: ${cargaDisplay}\n`;
+                    });
+
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        showToast('Copiado para a área de transferência!');
+                    } catch (err) {
+                        // Fallback method para navegadores mais restritos
+                        const textArea = document.createElement("textarea");
+                        textArea.value = text;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            showToast('Copiado para a área de transferência!');
+                        } catch (err2) {
+                            showToast('Erro ao copiar. Seu navegador não permitiu.');
+                        }
+                        document.body.removeChild(textArea);
+                    }
+                };
+
+                // Limpar timers caso desmonte o app (boas práticas)
+                onUnmounted(() => {
+                    Object.values(db).forEach(user => {
+                        Object.values(user.treinos).forEach(treino => {
+                            treino.forEach(ex => { if (ex.intervalId) clearInterval(ex.intervalId); });
+                        });
+                    });
+                });
+
+                return {
+                    currentPage, currentWorkoutId, toast, db,
+                    currentUserData, activeTheme, activeWorkoutData,
+                    headerClasses, buttonPrimaryClasses, buttonSecondaryClasses, cardClasses, tagClasses, inputRingClasses, timerBtnClasses, exportBtnClasses,
+                    selectUser, goHome, startWorkout, toggleTimer, exportWorkout
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
